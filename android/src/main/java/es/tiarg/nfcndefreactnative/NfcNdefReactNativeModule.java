@@ -93,6 +93,22 @@ class NfcNdefReactNativeModule extends ReactContextBaseJavaModule implements Act
 		return record;
 	}
 
+    public static String toHex(byte[] bytes) {
+        int offset = 0;
+        int length  = bytes.length;
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < length; i++) {
+            int unsignedByte = bytes[i + offset] & 0xff;
+
+            if (unsignedByte < 16) {
+                result.append("0");
+            }
+
+            result.append(Integer.toHexString(unsignedByte));
+        }
+        return result.toString();
+    }
+
     private class ThreadLectura implements Runnable {
         public void run() {
             if (tag != null && (idOperation || readOperation || writeOperation)) {
@@ -127,7 +143,7 @@ class NfcNdefReactNativeModule extends ReactContextBaseJavaModule implements Act
 						WritableArray recs = new WritableNativeArray();
 
 						for (int i = 0; i<ndef_records.length; i++) {
-							recs.pushString(new String(ndef_records[i].getPayload(), "US-ASCII"));
+							recs.pushString(toHex(ndef_records[i].getPayload()));
 						}
 						//Log.i("ReactNative", "[+] [NfcNdefReactNative] -> ThreadLectura.run() Payloads: " + records[0] );
 
@@ -300,5 +316,14 @@ class NfcNdefReactNativeModule extends ReactContextBaseJavaModule implements Act
     public void getTagId() {
 		Log.i("ReactNative", "[+] [NfcNdefReactNative] -> getTagId()");
         this.idOperation = true;
+    }
+
+    @ReactMethod
+    public void reset() {
+        this.tagId = 0;
+        this.sectores = null;
+        this.readOperation = false;
+        this.writeOperation = false;
+        this.idOperation = false;
     }
 }
